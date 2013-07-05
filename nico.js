@@ -57,6 +57,11 @@ var Telopper = function(id){
 		break;
 	}
 
+	//自動再生するかを判断
+	if($(this.OBJ).attr("pause") === undefined){
+		this.setLoop();
+	}
+
 }
 
 
@@ -74,7 +79,6 @@ Telopper.prototype = {
 
 	    //投稿ボタン処理
 		$(this.OBJ + " .post").bind("click",function(){
-			//【考え中】makeTelopのユニークID指定をどうつくるか・・・。
 					self.makeTelop(self.cnt++,$(self.OBJ + " .postbody").val() );
 					$(self.OBJ + " .postbody").val("");
 		});
@@ -101,6 +105,7 @@ Telopper.prototype = {
 
 	//動作モードチェック
 	checkMode : function (){
+
 		if( $(this.OBJ + "> .telopContainer div").length == 0){
 			return 0; 	//this.mode=0:外部JSON取得モード
 		} else {
@@ -126,13 +131,19 @@ Telopper.prototype = {
 					self.moveTelop(telopID)
 					if(self.isOverflow(telopID)){
 						$(self.OBJ + "_" + telopID).remove();
-						//連想配列への破壊的操作：バグ要注意
 						delete self.telop[key]
 					}
 				}
 
 				//新規テロップ確認処理
 				self.checkTelop();
+
+				//ループチェック
+				if( $(self.OBJ).attr("looptime") == self.clock ){
+					self.clock = 0;
+				}
+
+
 			}), self.INTERVAL);
 		}
 	},
@@ -149,7 +160,6 @@ Telopper.prototype = {
 	},
 
 	//外部JSONの取得
-	//データ保持の形を変える！！！！！！！
 	getJSON : function (){
 		var self = this;
 		$.get(this.id + ".json" ,function(data){
@@ -236,7 +246,7 @@ Telopper.prototype = {
 		//テロップの初期位置設定とvisilityをvisibleに設定
 		var trh = $(this.OBJ).height();
 		var tph = $(this.OBJ + "_" + telopID).height();
-		var vpos= parseInt( (parseInt( trh / tph ) - 1 ) * Math.random() ) *  tph ;
+		var vpos= parseInt( (parseInt( trh / tph ) - 2 ) * Math.random() ) *  tph ;
 		$(this.OBJ + "_" + telopID).css({ top: vpos, left : this.width(), visibility : "visible" });
 
 	},
@@ -289,32 +299,14 @@ Telop.prototype = {
 
 }
 
-/* --------------------------------------------------
- * その他
- *--------------------------------------------------*/
-//htmlタグ・エスケープ処理
-htmlspecialchars = function(str){
-		str = str.replace(/&/g,"&amp;")
-				  .replace(/"/g,"&quot;").replace(/'/g,"&#039;")
-				  .replace(/</g,"&lt;").replace(/>/g,"&gt;");
-	    return str;
-}
-
 
 //DOMツリー構築後処理
 jQuery(document).ready( function(){
 
-
-	//【要修正】Debug用にvarを付けてないので公開時に隠蔽！
-	TlprArea = $(".telopArea").toArray();
-	TlprIns  = new Array();
+	var TlprArea = $(".telopArea").toArray();
+	var TlprIns  = new Array();
 	for (var key in TlprArea ){
 		TlprIns[key] = new Telopper(TlprArea[key].id);
 	}
-
-
-
 });
-
-
 
