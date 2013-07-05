@@ -3,7 +3,7 @@
  * nico.js v0.00
  * http://unagiinu.net/app/nico
  *
- * Copyright 2013, Yuki Yanagi
+ * Copyright 2013, unagiinu.net
  * This content is released under the MIT License.
  * http://unagiinu.net/app/nico#license
  *
