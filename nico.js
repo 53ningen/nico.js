@@ -1,7 +1,8 @@
 /*
  *
- * nico.js v0.00
+ * nico.js v0.01(2013/07/09)
  * http://unagiinu.net/app/nico
+ *
  *
  * Copyright 2013, unagiinu.net
  * This content is released under the MIT License.
@@ -32,12 +33,16 @@ var Telopper = function(id){
 	this.telopData = new Array();
 
 
-	//jQueryセレクタ定数
-	this.OBJ = "#" + this.id;
+	//jQueryセレクタキャッシュ
+	this.OBJ = $("#" + this.id);
+	//jQueryセレクタ
+	this.OBJs= "#" + this.id;
 	//ループ処理のインターバル(msec)
-	this.INTERVAL = 10;
+	this.INTERVAL = 20;
 	//1ステップのテロップの移動距離（px）
-	this.MOVEPX = 2;
+	this.MOVEPX = 3.5;
+	//時計セレクタキャッシュ
+	this.CLOCKOBJ = $(this.OBJs + " .time");
 
 
 	//コンストラクタ
@@ -58,7 +63,7 @@ var Telopper = function(id){
 	}
 
 	//自動再生するかを判断
-	if($(this.OBJ).attr("pause") === undefined){
+	if(this.OBJ.attr("pause") === undefined){
 		this.setLoop();
 	}
 
@@ -78,26 +83,26 @@ Telopper.prototype = {
 
 
 	    //投稿ボタン処理
-		$(this.OBJ + " .post").bind("click",function(){
-					self.makeTelop(self.cnt++,$(self.OBJ + " .postbody").val() );
-					$(self.OBJ + " .postbody").val("");
+		$( this.OBJs + " .post").bind("click",function(){
+					self.makeTelop(self.cnt++,$(self.OBJs + " .postbody").val() );
+					$(self.OBJs + " .postbody").val("");
 		});
 
 		//フォームフォーカス時エンター
-		$(this.OBJ + " .postbody").bind("keypress",function(key){
+		$( this.OBJs + " .postbody").bind("keypress",function(key){
 			if(key.which == 13){
-					self.makeTelop(self.cnt++,$(self.OBJ + " .postbody").val() );
-					$(self.OBJ + " .postbody").val("");
+					self.makeTelop(self.cnt++,$(self.OBJs + " .postbody").val() );
+					$(self.OBJs + " .postbody").val("");
 			}
 		});
 
 		//スタートボタン
-		$(this.OBJ + " .start").bind("click",function(){
+		$( this.OBJs + " .start").bind("click",function(){
 			self.setLoop();
 		});
 
 		//ストップボタン
-		$(this.OBJ + " .stop").bind("click",function(){
+		$( this.OBJs + " .stop").bind("click",function(){
 			self.stopLoop();
 		});
 
@@ -106,7 +111,7 @@ Telopper.prototype = {
 	//動作モードチェック
 	checkMode : function (){
 
-		if( $(this.OBJ + "> .telopContainer div").length == 0){
+		if( $(this.OBJs + "> .telopContainer > div").length == 0){
 			return 0; 	//this.mode=0:外部JSON取得モード
 		} else {
 			return 1; 	//this.mode=1:html内テロップを流すモード
@@ -116,35 +121,35 @@ Telopper.prototype = {
 	//ループ処理の設定
 	setLoop : function(){
 		if(this.state == 0){
-			//テロッパー再生状況フラグを"再生"に設定
-			this.state = 1;
+			this.state = 1;	//テロッパー再生状況フラグを"再生"に設定
+			this.Loop();
+		}
+	},
 
-			var self = this;
-			this.interval = setInterval( (function(){
-				//時計の更新関連
-				self.clock += self.INTERVAL;
-				$(self.OBJ + "> .time").val((self.clock - self.clock % 1000)/1000);
+	Loop : function(){
+		var self = this;
+		this.timer = setTimeout(function(){self.Loop()},this.INTERVAL);
 
-				//テロップ移動処理
-				for (var key in self.telop){
-					telopID = self.telop[key].id;
-					self.moveTelop(telopID)
-					if(self.isOverflow(telopID)){
-						$(self.OBJ + "_" + telopID).remove();
-						delete self.telop[key]
-					}
-				}
+		//時計の更新関連
+		this.clock += this.INTERVAL;
+		this.CLOCKOBJ.val(parseInt(self.clock/1000));
 
-				//新規テロップ確認処理
-				self.checkTelop();
+		//テロップ移動処理
+		for (var key in this.telop){
+			telopID = this.telop[key].id;
+			if(this.isOverflow(telopID)){
+				$(this.OBJs + "_" + telopID).remove();
+				delete self.telop[key];
+			}
+			this.moveTelop(telopID);
+		}
 
-				//ループチェック
-				if( $(self.OBJ).attr("looptime") == self.clock ){
-					self.clock = 0;
-				}
+		//新規テロップ確認処理
+		this.checkTelop();
 
-
-			}), self.INTERVAL);
+		//ループチェック
+		if( this.OBJ.attr("looptime") == self.clock ){
+			this.clock = 0;
 		}
 	},
 
@@ -154,7 +159,7 @@ Telopper.prototype = {
 			//テロッパー再生状況フラグを"停止"に設定
 			this.state = 0;
 
-			clearInterval(this.interval);
+			clearTimeout(this.timer);
 		}
 
 	},
@@ -184,7 +189,7 @@ Telopper.prototype = {
 
 	//内部テロップの取得
 	getInternalTelop : function(){
-		var telopsDump = $(this.OBJ + "> .telopContainer > div")
+		var telopsDump = $(this.OBJs + "> .telopContainer > div")
 
 		for(var i=0; i < telopsDump.length; i++){
 			if(this.telopData[telopsDump.eq(i).attr("time")] === undefined){
@@ -206,11 +211,11 @@ Telopper.prototype = {
 	 */
 	//Telopperの幅を返す
 	width : function(){
-		return $(this.OBJ).width();
+		return this.OBJ.width();
 	},
 	//Telopperの高さを返す
 	height : function(){
-		return $(this.OBJ).height();
+		return this.OBJ.height();
 	},
 
 
@@ -219,7 +224,7 @@ Telopper.prototype = {
 	 */
 	//テロップがテロッパーから溢れていないかチェック
 	isOverflow : function(telopID){
-		var telopOBJ = this.OBJ + "_" + telopID;
+		var telopOBJ = this.OBJs + "_" + telopID;
 
 		if(	parseInt( $(telopOBJ).css("left") ) < - $(telopOBJ).width()  ){
 			return true
@@ -231,7 +236,7 @@ Telopper.prototype = {
 
 	//テロップを1ステップ動かす
 	moveTelop : function(telopID){
-		var tpSelector = this.OBJ + "_" + telopID;
+		var tpSelector = this.OBJs + "_" + telopID;
 		var pos = parseInt($(tpSelector).css("left")) - this.MOVEPX;
 		$(tpSelector).css({left: pos });
 	},
@@ -241,13 +246,13 @@ Telopper.prototype = {
 		this.telop[telopID]  = new Telop(telopID,body,style,this.id);
 
 		//htmlソースを書き出す
-		$(this.OBJ + " .telopContainer" ).append( this.telop[telopID].print() );
+		$(this.OBJs + " .telopContainer" ).append( this.telop[telopID].print() );
 
 		//テロップの初期位置設定とvisilityをvisibleに設定
-		var trh = $(this.OBJ).height();
-		var tph = $(this.OBJ + "_" + telopID).height();
+		var trh = this.OBJ.height();
+		var tph = $(this.OBJs + "_" + telopID).height();
 		var vpos= parseInt( (parseInt( trh / tph ) - 2 ) * Math.random() ) *  tph ;
-		$(this.OBJ + "_" + telopID).css({ top: vpos, left : this.width(), visibility : "visible" });
+		$(this.OBJs + "_" + telopID).css({ top: vpos, left : this.width(), visibility : "visible" });
 
 	},
 
@@ -276,7 +281,8 @@ var Telop = function(id,body,style,telopperID){
 	this.setValue("telopperID", telopperID)
 
 	//CSSセレクタ
-	this.OBJ = "#" + this.id;
+	this.OBJs= "#" + this.telopperID + "_" + this.telopID;
+	this.OBJ = $(this.OBJs);
 
 }
 
@@ -309,4 +315,3 @@ jQuery(document).ready( function(){
 		TlprIns[key] = new Telopper(TlprArea[key].id);
 	}
 });
-
