@@ -1,41 +1,18 @@
-@CHARSET "UTF-8";
 
-.telopArea{
+.telopper {
 	position: relative;
 	display: inline-block;
-    top: 0px;
-    left: 0px;
-    margin: 10px;
-    padding: 0;
-    overflow: hidden;
 }
 
-.baseContainer{
-	display: inline-block;
-	margin: 0;
-	padding: 0;
-	overflow: hidden;
-}
-
-
-.telop{
-    position: absolute;
-    top: 0px;
-    left: 1400px;
-    margin: 0;
-    margin-top: 3px;
-    padding: 0;
-    visibility: hidden;
-	font-size: 24pt;
-	font-weight: bold;
-	color : white;
-	text-shadow: 2px 2px 2px #000000;
-	white-space: nowrap;
-	z-index:1 ;
-	cursor: default;
-}
-
-.telopArea > .telopContainer > div{
+.telopper > .telops{
 	position: absolute;
-	visibility: hidden;
+	display: none;
+}
+.telopper > canvas{
+	position: absolute;
+	top:0;
+	left:0;
+	font-size: 24px;
+	font-weight:bold;
+	font-family: "MSÉSÉVÉbÉN";
 }
